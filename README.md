@@ -15,3 +15,9 @@ Este proyecto implementa un sistema distribuido utilizando Java RMI (Remote Meth
 - **Java JDK 11+**.
 - **RMI Registry** (ejecutar `rmiregistry` en el directorio del proyecto).
 - **Máquinas distribuidas**: Se recomienda utilizar al menos tres máquinas en la misma red local (L1.02).
+
+##Ejecución
+
+- Broker: rmiregistry -J-Djava.rmi.server.hostname=155.210.154.197 && java BrokerImpl
+- Servidor A: rmiregistry 1100 -J-Djava.rmi.server.hostname=155.210.154.198 && java ServidorAImpl
+- Servidor B: rmiregistry 1101 -J-Djava.rmi.server.hostname=155.210.154.199 && java ServidorBImpl
