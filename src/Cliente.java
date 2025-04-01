@@ -16,7 +16,7 @@ import java.util.Scanner;
  
     public static void main(String[] args) {
         try {
-            Broker broker = (Broker) Naming.lookup("rmi://" + brokerHost + ":" + Config.BROKER_PUERTO + "/Broker");
+            Broker broker = (Broker) Naming.lookup("rmi://" + brokerHost + ":" + Config.BROKER_PUERTO + "/" + Config.BROKER_NOMBRE);
  
             Scanner scanner = new Scanner(System.in);
             
