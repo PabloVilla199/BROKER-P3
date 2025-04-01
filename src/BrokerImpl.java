@@ -109,4 +109,14 @@ public class BrokerImpl extends UnicastRemoteObject implements Broker {
             throw new RemoteException("Error recuperando respuesta: " + e.getMessage());
         }
     }
+
+    public static void main(String[] args) {
+        try {
+            Broker broker = new BrokerImpl();
+            Naming.rebind("rmi://" + Config.BROKER_IP + ":" + Config.BROKER_PUERTO + "/" + Config.BROKER_NOMBRE, broker);
+            System.out.println("Broker registrado como Broker_MP");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
