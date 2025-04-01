@@ -20,4 +20,4 @@ Este proyecto implementa un sistema distribuido utilizando Java RMI (Remote Meth
 
 - Broker: rmiregistry -J-Djava.rmi.server.hostname=155.210.154.197 && java BrokerImpl
 - Servidor A: rmiregistry 1100 -J-Djava.rmi.server.hostname=155.210.154.198 && java ServidorAImpl
-- Servidor B: rmiregistry 1101 -J-Djava.rmi.server.hostname=155.210.154.199 && java ServidorBImpl
+- Servidor B: rmiregistry 1101 -J-Djava.rmi.server.hostname=155.210.154.198 && java ServidorBImpl

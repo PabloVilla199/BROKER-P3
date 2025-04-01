@@ -9,7 +9,7 @@ public class Config {
     public static final int SERVIDOR_A_PUERTO = 1100;
     public static final String SERVIDOR_A_NOMBRE = "ServidorA_MP";
     
-    public static final String SERVIDOR_B_IP = "155.210.154.199";
+    public static final String SERVIDOR_B_IP = "155.210.154.198";
     public static final int SERVIDOR_B_PUERTO = 1101;
     public static final String SERVIDOR_B_NOMBRE = "ServidorB_MP";
 }
