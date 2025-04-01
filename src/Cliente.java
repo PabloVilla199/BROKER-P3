@@ -12,11 +12,9 @@ import java.util.Scanner;
  
  public class Cliente {
  
-    static String brokerHost = "localhost";  
- 
     public static void main(String[] args) {
         try {
-            Broker broker = (Broker) Naming.lookup("rmi://" + brokerHost + ":" + Config.BROKER_PUERTO + "/" + Config.BROKER_NOMBRE);
+            Broker broker = (Broker) Naming.lookup("rmi://" + Config.BROKER_IP + ":" + Config.BROKER_PUERTO + "/" + Config.BROKER_NOMBRE);
  
             Scanner scanner = new Scanner(System.in);
             
