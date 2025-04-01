@@ -5,9 +5,13 @@
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class ServidorBImpl extends UnicastRemoteObject implements ServidorB {
+    private List<String> serviciosRegistrados = new ArrayList<>();
+
     public ServidorBImpl() throws RemoteException {
         super();
     }
@@ -46,6 +50,29 @@ public class ServidorBImpl extends UnicastRemoteObject implements ServidorB {
                 Arrays.asList("String"),
                 "String"
             );
+
+            servidor.serviciosRegistrados.add("servicioB");
+
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
+                    if (broker != null && !servidor.serviciosRegistrados.isEmpty()) {
+                        for (String servicio : servidor.serviciosRegistrados) {
+                            broker.bajaServicio(Config.SERVIDOR_A_NOMBRE, servicio);
+                            System.out.println("Servicio eliminado: " + servicio);
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error al eliminar servicios: " + e.getMessage());
+                }
+                try {
+                    if (rmiUrl != null) {
+                        Naming.unbind(rmiUrl);
+                        System.out.println("Servidor A desvinculado de RMI");
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error al desvincular RMI: " + e.getMessage());
+                }
+            }));
             
             System.out.println("Servidor B registrado en: " + rmiUrl);
             
