@@ -1,3 +1,9 @@
+/**
+  * Implementación del Servidor B.
+  * Este servidor ofrece un servicio para obtener la hora en una zona horaria específica.
+  * 
+  * @author Pablo y Marcos
+  */
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
