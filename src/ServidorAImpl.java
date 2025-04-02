@@ -18,8 +18,23 @@ public class ServidorAImpl extends UnicastRemoteObject implements ServidorA {
     }
 
     @Override
-    public String servicioA(String parametro) throws RemoteException {
-        return "Resultado del servicio A con parámetro: " + parametro;
+    public double calcularFactorial(int n) throws RemoteException {
+        if (n < 0) throw new IllegalArgumentException("Número negativo");
+        return (n == 0) ? 1 : n * calcularFactorial(n - 1);
+    }
+
+    @Override
+    public boolean esNumeroPrimo(int numero) throws RemoteException {
+        if (numero <= 1) return false;
+        for (int i = 2; i <= Math.sqrt(numero); i++) {
+            if (numero % i == 0) return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String convertirBinario(int numero) throws RemoteException {
+        return Integer.toBinaryString(numero);
     }
 
     public static void main(String[] args) {
@@ -44,15 +59,16 @@ public class ServidorAImpl extends UnicastRemoteObject implements ServidorA {
                 Config.SERVIDOR_A_NOMBRE,
                 Config.SERVIDOR_A_IP + ":" + Config.SERVIDOR_A_PUERTO
             );
-            
-            broker.altaServicio(
-                Config.SERVIDOR_A_NOMBRE,
-                "servicioA",
-                Arrays.asList("String"),
-                "String"
-            );
 
-            servidor.serviciosRegistrados.add("servicioA");
+            
+            registrarServicio(broker, servidor, "calcularFactorial", 
+                Arrays.asList("int"), "double");
+            
+            registrarServicio(broker, servidor, "esNumeroPrimo", 
+                Arrays.asList("int"), "boolean");
+            
+            registrarServicio(broker, servidor, "convertirBinario", 
+                Arrays.asList("int"), "String");
 
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 try {
@@ -82,5 +98,12 @@ public class ServidorAImpl extends UnicastRemoteObject implements ServidorA {
             System.err.println("Error Servidor A: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private static void registrarServicio(Broker broker, ServidorAImpl servidor, 
+                                         String nombre, List<String> parametros, 
+                                         String retorno) throws Exception {
+        broker.altaServicio(Config.SERVIDOR_A_NOMBRE, nombre, parametros, retorno);
+        servidor.serviciosRegistrados.add(nombre);
     }
 }

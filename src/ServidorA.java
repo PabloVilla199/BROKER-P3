@@ -8,5 +8,7 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 public interface ServidorA extends Remote {
-    String servicioA(String parametro) throws RemoteException;
+    double calcularFactorial(int n) throws RemoteException;
+    boolean esNumeroPrimo(int numero) throws RemoteException;
+    String convertirBinario(int numero) throws RemoteException;
 }
