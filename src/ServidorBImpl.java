@@ -49,7 +49,14 @@ public class ServidorBImpl extends UnicastRemoteObject implements ServidorB {
      */
     @Override
     public List<String> listarZonasHorarias() throws RemoteException {
-        return new ArrayList<>(ZoneId.getAvailableZoneIds());
+      List<String> zonasHorarias = new ArrayList<>(ZoneId.getAvailableZoneIds());
+      List<String> zonasLimitadas = new ArrayList<>();
+    
+      for (int i = 0; i < 20 && i < zonasHorarias.size(); i++) {
+            zonasLimitadas.add(zonasHorarias.get(i));
+      }
+      return zonasLimitadas;
+
     }
 
     public static void main(String[] args) {
