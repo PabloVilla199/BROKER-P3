@@ -14,6 +14,6 @@ public interface Broker extends Remote {
 
     Map<String, ServicioInfo> listarServicios() throws RemoteException;
     Object ejecutarServicio(String nombreServicio, List<Object> parametros) throws RemoteException;
-    String ejecutarServicioAsinc(String nombreServicio, List<Object> parametros) throws RemoteException;
-    Object obtenerRespuestaAsinc(String solicitudId) throws RemoteException;
+    String ejecutarServicioAsinc(String clientId, String nombreServicio, List<Object> parametros) throws RemoteException;
+    Object obtenerRespuestaAsinc(String clientId, String solicitudId) throws RemoteException;
 }

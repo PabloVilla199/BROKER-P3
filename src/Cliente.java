@@ -9,9 +9,10 @@
  import java.util.List;
  import java.util.Map;
  import java.util.Scanner;
+ import java.util.UUID;
   
   public class Cliente {
-  
+    private static final String CLIENT_ID = UUID.randomUUID().toString();
      public static void main(String[] args) {
          try {
              Broker broker = (Broker) Naming.lookup("rmi://" + Config.BROKER_IP + ":" + Config.BROKER_PUERTO + "/" + Config.BROKER_NOMBRE);
@@ -57,7 +58,7 @@
                          boolean esAsincrono = scanner.nextLine().equalsIgnoreCase("s");
                          
                          if (esAsincrono) {
-                             String idSolicitud = broker.ejecutarServicioAsinc(nombreServicio, parametros);
+                             String idSolicitud = broker.ejecutarServicioAsinc(CLIENT_ID, nombreServicio, parametros);
                              System.out.println("Solicitud asíncrona registrada. ID: " + idSolicitud);
                          } else {
                              Object resultado = broker.ejecutarServicio(nombreServicio, parametros);
@@ -69,7 +70,7 @@
                          System.out.print("ID de solicitud: ");
                          String id = scanner.nextLine().trim();
                          try {
-                             Object respuesta = broker.obtenerRespuestaAsinc(id);
+                             Object respuesta = broker.obtenerRespuestaAsinc(CLIENT_ID, id);
                              System.out.println("Respuesta: " + respuesta);
                          } catch (RemoteException e) {
                              System.out.println("Error: " + e.getMessage());

@@ -10,6 +10,8 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -22,14 +24,63 @@ public class BrokerImpl extends UnicastRemoteObject implements Broker {
 
     private final Map<String, ServicioInfo> servicios = new ConcurrentHashMap<>();
     private final Map<String, String> servidores = new ConcurrentHashMap<>();
-    private final Map<String, Future<Object>> respuestasAsinc = new ConcurrentHashMap<>();
+    private final Map<String, PeticionAsincrona> respuestasAsinc = new ConcurrentHashMap<>();
     private final ExecutorService executor = Executors.newCachedThreadPool();
+
+    private final Map<ClientServiceKey, String> pendingClientServices = new ConcurrentHashMap<>();
+    private final Set<String> solicitudesEntregadas = ConcurrentHashMap.newKeySet();
 
     public BrokerImpl() throws RemoteException {
         super();
     }
 
+    // Clases para la gestión de peticiones asíncronas
+
+    private static class ClientServiceKey {
+        private final String clientId;
+        private final String nomServicio;
+
+        public ClientServiceKey(String clientId, String nomServicio) {
+            this.clientId = clientId;
+            this.nomServicio = nomServicio;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ClientServiceKey that = (ClientServiceKey) o;
+            return clientId.equals(that.clientId) && nomServicio.equals(that.nomServicio);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(clientId, nomServicio);
+        }
+    }
+
+    private static class PeticionAsincrona {
+        Future<Object> future;
+        String clientId;
+        String nomServicio;
+
+        PeticionAsincrona(Future<Object> future, String clientId, String nomServicio) {
+            this.future = future;
+            this.clientId = clientId;
+            this.nomServicio = nomServicio;
+        }
+    }
+    
+
     // Api para los servidores
+
+    private static Class<?> toPrimitive(Class<?> clazz) {
+        if(clazz == Integer.class) return int.class;
+        else if(clazz == Double.class) return double.class;
+        else if(clazz == Boolean.class) return boolean.class;
+
+        return clazz;
+    }
 
     @Override
     public void registrar_servidor(String nombre_servidor, String host_remoto_IP_puerto) throws RemoteException {
@@ -68,7 +119,8 @@ public class BrokerImpl extends UnicastRemoteObject implements Broker {
             
             Class<?>[] tiposParametros = new Class<?>[parametros.size()];
             for (int i = 0; i < parametros.size(); i++) {
-                tiposParametros[i] = parametros.get(i).getClass();
+                Class<?> clazz = parametros.get(i).getClass();
+                tiposParametros[i] = toPrimitive(clazz);
             }
             
             Method metodo = servidorRemoto.getClass().getMethod(nomServicio, tiposParametros);
@@ -80,25 +132,48 @@ public class BrokerImpl extends UnicastRemoteObject implements Broker {
     }
 
     @Override
-    public String ejecutarServicioAsinc(String nomServicio, List<Object> parametros) throws RemoteException {
+    public String ejecutarServicioAsinc(String clientId, String nomServicio, List<Object> parametros) throws RemoteException {
+        ClientServiceKey key = new ClientServiceKey(clientId, nomServicio);
+        if (pendingClientServices.containsKey(key)) {
+            throw new RemoteException("El cliente ya tiene una solicitud pendiente para este servicio");
+        }
+
         String solicitudId = UUID.randomUUID().toString();
         
         Future<Object> future = executor.submit(() -> ejecutarServicio(nomServicio, parametros));
-        respuestasAsinc.put(solicitudId, future);
+        pendingClientServices.put(key, solicitudId);
+        respuestasAsinc.put(solicitudId, new PeticionAsincrona(future, clientId, nomServicio));
         
         System.out.println("Solicitud asíncrona ID: " + solicitudId);
         return solicitudId;
     }
 
     @Override
-    public Object obtenerRespuestaAsinc(String solicitudId) throws RemoteException {
+    public Object obtenerRespuestaAsinc(String currentClientId, String solicitudId) throws RemoteException {
         try {
+            PeticionAsincrona peticion = respuestasAsinc.get(solicitudId);
+            if (peticion == null) {
+                if (solicitudesEntregadas.contains(solicitudId)) {
+                    throw new RemoteException("La respuesta ya fue entregada previamente");
+                } else {
+                    throw new RemoteException("El cliente no había realizado previamente la solicitud");
+                }
+            }
+
             if (!respuestasAsinc.containsKey(solicitudId)) {
                 throw new RemoteException("Solicitud no encontrada o ya fue entregada");
             }
-            
-            Future<Object> future = respuestasAsinc.get(solicitudId);
-            Object resultado = future.get(10, TimeUnit.SECONDS); 
+
+            if (!currentClientId.equals(peticion.clientId)) {
+                throw new RemoteException("El cliente que pide la respuesta no es el mismo que hizo la petición");
+            }
+
+            Object resultado = peticion.future.get(10, TimeUnit.SECONDS);
+
+            ClientServiceKey key = new ClientServiceKey(peticion.clientId, peticion.nomServicio);
+            pendingClientServices.remove(key);
+            respuestasAsinc.remove(solicitudId);
+            solicitudesEntregadas.add(solicitudId);
             
             respuestasAsinc.remove(solicitudId); 
             return resultado;
@@ -106,6 +181,12 @@ public class BrokerImpl extends UnicastRemoteObject implements Broker {
         } catch (TimeoutException e) {
             throw new RemoteException("Tiempo de espera agotado");
         } catch (Exception e) {
+            PeticionAsincrona peticion = respuestasAsinc.get(solicitudId);
+            if (peticion != null) {
+                ClientServiceKey key = new ClientServiceKey(peticion.clientId, peticion.nomServicio);
+                pendingClientServices.remove(key);
+                respuestasAsinc.remove(solicitudId);
+            }
             throw new RemoteException("Error recuperando respuesta: " + e.getMessage());
         }
     }

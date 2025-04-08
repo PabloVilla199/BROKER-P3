@@ -31,7 +31,7 @@ public class ServidorBImpl extends UnicastRemoteObject implements ServidorB {
      * @throws RemoteException Si la zona horaria no es válida.
      */
     @Override
-    public String servicioB(String zonaHoraria) throws RemoteException {
+    public String obtenerHora(String zonaHoraria) throws RemoteException {
         try {
             ZoneId zoneId = ZoneId.of(zonaHoraria);
             LocalDateTime ahora = LocalDateTime.now(zoneId);
