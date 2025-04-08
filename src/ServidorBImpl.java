@@ -15,8 +15,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public class ServidorBImpl extends UnicastRemoteObject implements ServidorB {
-
-    private static final String SERVICIO_NOMBRE = "servicioB"; 
     private final List<String> serviciosRegistrados = new ArrayList<>();
 
     public ServidorBImpl() throws RemoteException {
@@ -82,7 +80,7 @@ public class ServidorBImpl extends UnicastRemoteObject implements ServidorB {
             );
             broker.altaServicio(
                 Config.SERVIDOR_B_NOMBRE,
-                SERVICIO_NOMBRE,
+                "obtenerHora",
                 Arrays.asList("String"), 
                 "String" 
             );
@@ -93,7 +91,7 @@ public class ServidorBImpl extends UnicastRemoteObject implements ServidorB {
                 "List<String>"
             );
             
-            servidor.serviciosRegistrados.add(SERVICIO_NOMBRE);
+            servidor.serviciosRegistrados.add("obtenerHora");
             servidor.serviciosRegistrados.add("listarZonasHorarias");
 
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
